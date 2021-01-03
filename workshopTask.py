@@ -53,14 +53,14 @@ def featureExtraction(tags):
     '''
 
     rule1_prp_flag = False
-    feature_vector = 6*[0]
+    feature_vector = 10*[0]
     prp_counter = 0
     nn_counter = 0
-
+    punctuation_counter = 0
+    verb_counter = 0
     pronoun_counter = 0
     noun_counter = 0
     for tag in tags:
-        if not tag[0] == tag[1]: # it is not a tag of poncutation
             # RULE 1: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
             if feature_vector[0] == 0:
                 if tag[1] == "PRP": # header_property he, she, it, they
@@ -87,7 +87,21 @@ def featureExtraction(tags):
                 if nn_counter >= 2:
                     if tag[1] == "PRP":
                         feature_vector[3] = 1
-
+                        
+            # RULE: verb sayısı
+            if feature_vector[2] == 0:
+                if tag[1].startswith("VB"):
+                    verb_counter += 1
+                    if verb_counter > 4:
+                        feature_vector[6] = 1
+            
+            # RULE: cümle değiştiren noktalama sayısı
+            if feature_vector[2] == 0:
+                if tag[1] in [',', '.', ';', '!', '?', ':', '``', "''"]:
+                    punctuation_counter += 1
+                    if punctuation_counter > 2:
+                        feature_vector[9] = 1
+                        
             # RULE 5: anaphors sayısı
             if tag[1] == "PRP":
                     pronoun_counter += 1
@@ -98,6 +112,8 @@ def featureExtraction(tags):
 
     feature_vector[4] = pronoun_counter
     feature_vector[5] = noun_counter
+    feature_vector[7] = verb_counter
+    feature_vector[8] = punctuation_counter
     return feature_vector
 
 def main():
