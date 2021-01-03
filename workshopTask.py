@@ -55,7 +55,7 @@ def featureExtraction(tags):
     '''
 
     rule1_prp_flag = False
-    feature_vector = 11 * [0]
+    feature_vector = 12 * [0]
     prp_counter = 0
     nn_counter = 0
     punctuation_counter = 0
@@ -108,6 +108,9 @@ def featureExtraction(tags):
         # RULE 6: referent olabileceklerin sayısı
         if tag[1].startswith("NN"):
             noun_counter += 1
+
+        if tag[i] == "WRB" and rule1_prp_flag == True:
+            feature_vector[11] = 1
 
 
     feature_vector[7] = prp_counter
