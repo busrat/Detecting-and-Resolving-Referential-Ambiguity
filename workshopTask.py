@@ -12,14 +12,14 @@
 #   Precision = number of correctly resolved anaphors divided by the total number of anaphors attempted to be resolved
 #   Recall = number of correctly resolved anaphors divided by the total number of unambiguous anaphors
 
-import csv
-import math
-
-import numpy as np
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+
+# nltk.download('punkt')
+# nltk.download('wordnet')
+# nltk.download('averaged_perceptron_tagger')
 
 def preprocessing(sentence):
     # 1. Word tokenization
@@ -29,13 +29,14 @@ def preprocessing(sentence):
     stop_words = set(stopwords.words('english'))
     filtered_words = []
     for word in tokenized_words:
-        if not word in stopwords:
+        if not word in stop_words:
             filtered_words.append(word)
 
     # 3. Lemmatization
     lemmatized_words = []
     for word in filtered_words:
-        lemmatized_words.append(WordNetLemmatizer.lemmatize(word))
+        lemmatizer = WordNetLemmatizer()
+        lemmatized_words.append(lemmatizer.lemmatize(word))
 
     # 4. POS tagging
     tagged_words = nltk.pos_tag(lemmatized_words)
@@ -46,6 +47,7 @@ def preprocessing(sentence):
     rp = nltk.RegexpParser(reg_exp)
     result = rp.parse(tagged_words)
 
+    print(result)
     return result
 
 def detectionReferentialAmbiguity(preprocessed_sentence):
@@ -64,9 +66,10 @@ def main():
                            "yourselves, that, theirs, these, they, this, which, who, you, yours," \
                            " someone, anyone, everyone, somebody, anybody, everybody, something," \
                            " anything, everything"
-    ambiguity_indicators_list = np.split(", ")
+    # ambiguity_indicators_list = np.split(", ")
 
 
     preprocessing(sentence1)
 if __name__ == '__main__':
     main()
+
