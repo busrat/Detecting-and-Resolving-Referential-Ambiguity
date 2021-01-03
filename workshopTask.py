@@ -1,7 +1,10 @@
-#Useful links:
+# Useful links:
 # https://www.researchgate.net/publication/313867290_Using_NLP_to_Detect_Requirements_Defects_An_Industrial_Experience_in_the_Railway_Domain
 # https://github.com/BenedettaRosadini/QuARS-/tree/master/jape
 # https://sci-hub.se/10.1007/978-3-319-54045-0_24
+# https://core.ac.uk/download/pdf/301374847.pdf
+# D. L. Thanh, \Two machine learning approaches to coreference resolution," 2009.
+# https://journals.ekb.eg/article_15909.html
 
 
 
@@ -13,9 +16,10 @@
 #   Recall = number of correctly resolved anaphors divided by the total number of unambiguous anaphors
 
 import nltk
-from nltk.tokenize import sent_tokenize, word_tokenize
-from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from csv import reader
+from sklearn import linear_model
 
 # nltk.download('punkt')
 # nltk.download('wordnet')
@@ -25,51 +29,121 @@ def preprocessing(sentence):
     # 1. Word tokenization
     tokenized_words = word_tokenize(sentence)
 
-    # 2. Stopwords elimination
-    stop_words = set(stopwords.words('english'))
-    filtered_words = []
-    for word in tokenized_words:
-        if not word in stop_words:
-            filtered_words.append(word)
+    # 2. Stopwords elimination is removed (to get and or etc.)
 
     # 3. Lemmatization
     lemmatized_words = []
     lemmatizer = WordNetLemmatizer()
-    for word in filtered_words:
+    for word in tokenized_words:
         lemmatized_words.append(lemmatizer.lemmatize(word))
 
     # 4. POS tagging
     tagged_words = nltk.pos_tag(lemmatized_words)
 
+    print(tagged_words)
+    return tagged_words
 
-    # 5. Parsing
-    reg_exp = "NP: { < DT >? < JJ > * < NN >}"
-    rp = nltk.RegexpParser(reg_exp)
-    result = rp.parse(tagged_words)
+def featureExtraction(tags):
+    '''
+        4: çoğul çoğul mu?
+        5: cinsiyetler uyumlu mu?
+        6: word distance - arada kaç kelime var
+        7: NN + NN -> he she it anaphoraNominative
 
-    print(result)
-    return result
+    he, she, it, they
+    Re
+    exive himself, herself, itself, themselves
+    Possesive his, her, its, their
+    Objective him, her, it, them
 
-def detectionReferentialAmbiguity(preprocessed_sentence):
-    # rule: when sentence containing "anaphora or pronoun such as they or them" replaces with "the farthest noun"
-    # rule: when sentence containing "plural nouns" add "each" before it
+    '''
 
-    result = "True"
-    return result
+    rule1_prp_flag = False
+    feature_vector = 4*[0]
+    prp_counter = 0
+    nn_counter = 0
+    for tag in tags:
+        if not tag[0] == tag[1]: # it it is not a tag of poncutation
+
+            # RULE 1: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
+            if feature_vector[0] == 0:
+                if tag[1] == "PRP": #header_property he, she, it, they
+                    rule1_prp_flag = True
+                if rule1_prp_flag == True and tag[1] == "NNP":
+                    feature_vector[0] = 1
+
+            # RULE 2: bağlaç var mı: varsa 1 yoksa 0
+            if feature_vector[1] == 0:
+                if tag[1] == "CC":
+                    feature_vector[1] = 1
+
+            # RULE 3: birden fazla pronoun var mı: varsa 1 yoksa 0
+            if feature_vector[2] == 0:
+                if tag[1] == "PRP":
+                    prp_counter += 1
+                    if prp_counter > 1:
+                        feature_vector[2] = 1
+
+            # RULE 7: NN + NN -> he she it var mı: varsa 1 yoksa 0
+            if feature_vector[3] == 0:
+                if tag[1] == "NN":
+                    nn_counter += 1
+                    if nn_counter > 2:
+                        if tag[1] == "PRP":
+                            feature_vector[3] = 1
+    return feature_vector
 
 def main():
-    sentence1 = "All material that is stored in the repository will enter <referential>it</referential> via the Ingest function."
-    sentence2 = "The library may want to accept important digital materials in non-standard formats in case we are able to migrate <referential>them</referential> to a more usable format in the future."
 
-    ambiguity_indicators = "I, he, she,it, me, her, him, them, hers, his, its, your, their," \
-                           " our, herself, himself, itself, ours, ourselves, yourself, themselves," \
-                           "yourselves, that, theirs, these, they, this, which, who, you, yours," \
-                           " someone, anyone, everyone, somebody, anybody, everybody, something," \
-                           " anything, everything"
-    # ambiguity_indicators_list = np.split(", ")
+    training_sentences_x = []
+    # open file in read mode
+    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
+        # pass the file object to reader() to get the reader object
+        csv_reader = reader(read_obj)
+        # Iterate over each row in the csv using reader object
+        for row in csv_reader:
+            # row variable is a list that represents a row in csv
+            new_row = row[1].replace("<referential>", "")
+            new_row = new_row.replace("</referential>", "")
+            training_sentences_x.append(new_row)
 
+    del training_sentences_x[0] # delete header
 
-    preprocessing(sentence1)
+    training_sentences_y = []
+    # open file in read mode
+    i = 0
+    with open('detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
+        # pass the file object to reader() to get the reader object
+        csv_reader = reader(read_obj)
+        # Iterate over each row in the csv using reader object
+        for row in csv_reader:
+            # row variable is a list that represents a row in csv
+            if not i == 0:
+                if row[1] == "AMBIGUOUS":
+                    training_sentences_y.append(1)
+                else:
+                    training_sentences_y.append(0)
+            i = 1
+
+    feature_vectors = []
+    for sentence in training_sentences_x:
+        tags = preprocessing(sentence)
+        feature_vector = featureExtraction(tags)
+        feature_vectors.append(feature_vector)
+
+    lreg = linear_model.LogisticRegression()
+    lreg.fit(feature_vectors, training_sentences_y)
+
+    predicted_sentences_y = lreg.predict(feature_vectors)
+
+    #print("training_sentences_y:  ", training_sentences_y)
+    #print("predicted_sentences_y: ", predicted_sentences_y)
+    true_prediction = 0
+    for i in range(len(training_sentences_y)):
+        if training_sentences_y[i] == predicted_sentences_y[i]:
+            true_prediction += 1
+
+    print("TOTAL: ", len(training_sentences_y), " - TRUE PREDICTED: ", true_prediction)
+
 if __name__ == '__main__':
     main()
-
