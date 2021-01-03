@@ -49,13 +49,6 @@ def featureExtraction(tags):
         5: cinsiyetler uyumlu mu?
         6: word distance - arada kaç kelime var
         7: NN + NN -> he she it anaphoraNominative
-
-    he, she, it, they
-    Re
-    exive himself, herself, itself, themselves
-    Possesive his, her, its, their
-    Objective him, her, it, them
-
     '''
 
     rule1_prp_flag = False
@@ -63,13 +56,12 @@ def featureExtraction(tags):
     prp_counter = 0
     nn_counter = 0
     for tag in tags:
-        if not tag[0] == tag[1]: # it it is not a tag of poncutation
-
+        if not tag[0] == tag[1]: # it is not a tag of poncutation
             # RULE 1: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
             if feature_vector[0] == 0:
-                if tag[1] == "PRP": #header_property he, she, it, they
+                if tag[1] == "PRP": # header_property he, she, it, they
                     rule1_prp_flag = True
-                if rule1_prp_flag == True and tag[1] == "NNP":
+                if rule1_prp_flag == True and (tag[1] == "NN" or tag[1] == "NNP" or tag[1] == "NNS"):
                     feature_vector[0] = 1
 
             # RULE 2: bağlaç var mı: varsa 1 yoksa 0
@@ -86,11 +78,11 @@ def featureExtraction(tags):
 
             # RULE 7: NN + NN -> he she it var mı: varsa 1 yoksa 0
             if feature_vector[3] == 0:
-                if tag[1] == "NN":
+                if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
                     nn_counter += 1
-                    if nn_counter > 2:
-                        if tag[1] == "PRP":
-                            feature_vector[3] = 1
+                if nn_counter >= 2:
+                    if tag[1] == "PRP":
+                        feature_vector[3] = 1
     return feature_vector
 
 def main():
@@ -126,10 +118,13 @@ def main():
             i = 1
 
     feature_vectors = []
+    i = 0
     for sentence in training_sentences_x:
         tags = preprocessing(sentence)
+        print(sentence)
         feature_vector = featureExtraction(tags)
         feature_vectors.append(feature_vector)
+        print(feature_vector)
 
     lreg = linear_model.LogisticRegression()
     lreg.fit(feature_vectors, training_sentences_y)
