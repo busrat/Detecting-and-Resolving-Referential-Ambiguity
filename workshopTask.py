@@ -108,7 +108,7 @@ def featureExtraction(tags):
             if tag[1] == "NN" or tag[1] == "NNP":
                 nn_counter1 += 1
             if nn_counter1 >= 2:
-                if tag[0] in ['he', 'she', 'it', 'He', 'She', 'It']:
+                if tag[0].lower() in ['he', 'she', 'it']:
                     feature_vector[3] = 1
 
         # RULE 11: noun + noun -> pronoun varsa 1 yoksa 0 - çoğul
@@ -116,7 +116,7 @@ def featureExtraction(tags):
             if tag[1] == "NNS" or tag[1] == "NNPS":
                 nn_counter2 += 1
             if nn_counter2 >= 2:
-                if tag[0] in ['they', 'They']:
+                if tag[0].lower() in ['they']:
                     feature_vector[14] = 1
 
         # RULE 4: verb sayısı
