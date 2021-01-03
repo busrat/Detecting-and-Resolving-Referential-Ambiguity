@@ -58,9 +58,9 @@ def featureExtraction(tags):
     nn_counter = 0
     punctuation_counter = 0
     verb_counter = 0
-    pronoun_counter = 0
     noun_counter = 0
     conj_counter = 0
+    
     for tag in tags:
             # RULE 1: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
             if feature_vector[0] == 0:
@@ -70,17 +70,17 @@ def featureExtraction(tags):
                     feature_vector[0] = 1
 
             # RULE 2: bağlaç var mı: varsa 1 yoksa 0
-            if feature_vector[1] == 0:
-                if tag[1] == "CC":
-                    conj_counter += 1
+            if tag[1] == "CC":
+                conj_counter += 1
+                if feature_vector[1] == 0:
                     feature_vector[1] = 1
-
+                    
+                
             # RULE 3: birden fazla pronoun var mı: varsa 1 yoksa 0
-            if feature_vector[2] == 0:
-                if tag[1] == "PRP":
-                    prp_counter += 1
-                    if prp_counter > 1:
-                        feature_vector[2] = 1
+            if tag[1] == "PRP":
+                prp_counter += 1
+                if prp_counter > 1 and feature_vector[2] == 0:
+                    feature_vector[2] = 1
 
             # RULE 4: NN + NN -> he she it var mı: varsa 1 yoksa 0
             if feature_vector[3] == 0:
@@ -90,29 +90,24 @@ def featureExtraction(tags):
                     if tag[1] == "PRP":
                         feature_vector[3] = 1
                         
-            # RULE: verb sayısı
-            if feature_vector[6] == 0:
-                if tag[1].startswith("VB"):
-                    verb_counter += 1
-                    if verb_counter > 4:
+            # RULE: verb sayısı            
+            if tag[1].startswith("VB"):
+                verb_counter += 1
+                if verb_counter > 4:
+                    if feature_vector[6] == 0:
                         feature_vector[6] = 1
             
             # RULE: cümle değiştiren noktalama sayısı
-            if feature_vector[9] == 0:
-                if tag[1] in [',', '.', ';', '!', '?', ':', '``', "''"]:
-                    punctuation_counter += 1
-                    if punctuation_counter > 2:
-                        feature_vector[9] = 1
+            if tag[1] in [',', '.', ';', '!', '?', ':', '``', "''"]:
+                punctuation_counter += 1
+                if punctuation_counter > 2 and feature_vector[9] == 0:
+                    feature_vector[9] = 1
                         
-            # RULE 5: anaphors sayısı
-            if tag[1] == "PRP":
-                    pronoun_counter += 1
-
             # RULE 6: referent olabileceklerin sayısı
             if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
                     noun_counter += 1
 
-    feature_vector[4] = pronoun_counter
+    feature_vector[4] = prp_counter
     feature_vector[5] = noun_counter
     feature_vector[7] = verb_counter
     feature_vector[8] = punctuation_counter
