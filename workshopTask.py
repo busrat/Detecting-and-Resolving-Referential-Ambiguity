@@ -1,3 +1,10 @@
+#Useful links:
+# https://www.researchgate.net/publication/313867290_Using_NLP_to_Detect_Requirements_Defects_An_Industrial_Experience_in_the_Railway_Domain
+# https://github.com/BenedettaRosadini/QuARS-/tree/master/jape
+# https://sci-hub.se/10.1007/978-3-319-54045-0_24
+
+
+
 #Detection:
 #   Precision = number of sentences correctly detected as ambiguous divided by the total number detected by the system as ambiguous
 #   Recall = number of sentences correctly detected as ambiguous divided by the total number annotated by humans as ambiguous
