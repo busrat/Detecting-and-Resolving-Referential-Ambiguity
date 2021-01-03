@@ -34,8 +34,8 @@ def preprocessing(sentence):
 
     # 3. Lemmatization
     lemmatized_words = []
+    lemmatizer = WordNetLemmatizer()
     for word in filtered_words:
-        lemmatizer = WordNetLemmatizer()
         lemmatized_words.append(lemmatizer.lemmatize(word))
 
     # 4. POS tagging
