@@ -9,10 +9,10 @@
 # https://pythonprogramming.net/part-of-speech-tagging-nltk-tutorial/
 
 
-#Detection:
+# Detection:
 #   Precision = number of sentences correctly detected as ambiguous divided by the total number detected by the system as ambiguous
 #   Recall = number of sentences correctly detected as ambiguous divided by the total number annotated by humans as ambiguous
-#Resolution:
+# Resolution:
 #   Precision = number of correctly resolved anaphors divided by the total number of anaphors attempted to be resolved
 #   Recall = number of correctly resolved anaphors divided by the total number of unambiguous anaphors
 
@@ -21,6 +21,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from csv import reader
 from sklearn import linear_model
+
 
 # nltk.download('punkt')
 # nltk.download('wordnet')
@@ -44,6 +45,7 @@ def preprocessing(sentence):
     print(tagged_words)
     return tagged_words
 
+
 def featureExtraction(tags):
     '''
         4: çoğul çoğul mu?
@@ -53,69 +55,70 @@ def featureExtraction(tags):
     '''
 
     rule1_prp_flag = False
-    feature_vector = 11*[0]
+    feature_vector = 11 * [0]
     prp_counter = 0
     nn_counter = 0
     punctuation_counter = 0
     verb_counter = 0
     noun_counter = 0
     conj_counter = 0
-    
+    i = 0
+
     for tag in tags:
-            # RULE 1: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
-            if feature_vector[0] == 0:
-                if tag[1] == "PRP": # header_property he, she, it, they
-                    rule1_prp_flag = True
-                if rule1_prp_flag == True and (tag[1] == "NN" or tag[1] == "NNP" or tag[1] == "NNS"):
-                    feature_vector[0] = 1
+        # RULE 0: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
+        if feature_vector[0] == 0:
+            if tag[1] == "PRP":  # header_property he, she, it, they
+                rule1_prp_flag = True
+            if rule1_prp_flag == True and (tag[1] == "NN" or tag[1] == "NNP" or tag[1] == "NNS" or tag[1] == "NNPS"):
+                feature_vector[0] = 1
 
-            # RULE 2: bağlaç var mı: varsa 1 yoksa 0
-            if tag[1] == "CC":
-                conj_counter += 1
-                if feature_vector[1] == 0:
-                    feature_vector[1] = 1
-                    
-                
-            # RULE 3: birden fazla pronoun var mı: varsa 1 yoksa 0
-            if tag[1] == "PRP":
-                prp_counter += 1
-                if prp_counter > 1 and feature_vector[2] == 0:
-                    feature_vector[2] = 1
+        # RULE 1: bağlaç var mı: varsa 1 yoksa 0
+        if tag[1] == "CC":
+            conj_counter += 1
+            if feature_vector[1] == 0:
+                feature_vector[1] = 1
 
-            # RULE 4: NN + NN -> he she it var mı: varsa 1 yoksa 0
-            if feature_vector[3] == 0:
-                if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
-                    nn_counter += 1
-                if nn_counter >= 2:
-                    if tag[1] == "PRP":
-                        feature_vector[3] = 1
-                        
-            # RULE: verb sayısı            
-            if tag[1].startswith("VB"):
-                verb_counter += 1
-                if verb_counter > 4:
-                    if feature_vector[6] == 0:
-                        feature_vector[6] = 1
-            
-            # RULE: cümle değiştiren noktalama sayısı
-            if tag[1] in [',', '.', ';', '!', '?', ':', '``', "''"]:
-                punctuation_counter += 1
-                if punctuation_counter > 2 and feature_vector[9] == 0:
-                    feature_vector[9] = 1
-                        
-            # RULE 6: referent olabileceklerin sayısı
-            if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
-                    noun_counter += 1
+        # RULE 2: birden fazla pronoun var mı: varsa 1 yoksa 0
+        if tag[1] == "PRP":
+            prp_counter += 1
+            if prp_counter > 1 and feature_vector[2] == 0:
+                feature_vector[2] = 1
 
-    feature_vector[4] = prp_counter
-    feature_vector[5] = noun_counter
-    feature_vector[7] = verb_counter
-    feature_vector[8] = punctuation_counter
+        # RULE 3: NN + NN -> he she it var mı: varsa 1 yoksa 0
+        if feature_vector[3] == 0:
+            if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP" or tag[1] == "NNPS":
+                nn_counter += 1
+            if nn_counter >= 2:
+                if tag[1] == "PRP":
+                    feature_vector[3] = 1
+
+        # RULE 4: verb sayısı
+        if tag[1].startswith("VB"):
+            verb_counter += 1
+            if verb_counter > 4:
+                if feature_vector[4] == 0:
+                    feature_vector[4] = 1
+
+        # RULE 5: cümle değiştiren noktalama sayısı
+        if tag[1] in [',', '.', ';', '!', '?', ':', '``', "''"]:
+            punctuation_counter += 1
+            if punctuation_counter > 2 and feature_vector[9] == 0:
+                feature_vector[5] = 1
+
+        # RULE 6: referent olabileceklerin sayısı
+        if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP" or tag[1] == "NNPS":
+            noun_counter += 1
+
+
+    feature_vector[7] = prp_counter
+    feature_vector[6] = noun_counter
+    feature_vector[8] = verb_counter
+    feature_vector[9] = punctuation_counter
     feature_vector[10] = conj_counter
     return feature_vector
 
-def main():
 
+def main():
     training_sentences_x = []
     # open file in read mode
     with open('training_set.csv', 'r', encoding='utf8') as read_obj:
@@ -128,7 +131,7 @@ def main():
             new_row = new_row.replace("</referential>", "")
             training_sentences_x.append(new_row)
 
-    del training_sentences_x[0] # delete header
+    del training_sentences_x[0]  # delete header
 
     training_sentences_y = []
     # open file in read mode
@@ -160,14 +163,15 @@ def main():
 
     predicted_sentences_y = lreg.predict(feature_vectors)
 
-    #print("training_sentences_y:  ", training_sentences_y)
-    #print("predicted_sentences_y: ", predicted_sentences_y)
+    # print("training_sentences_y:  ", training_sentences_y)
+    # print("predicted_sentences_y: ", predicted_sentences_y)
     true_prediction = 0
     for i in range(len(training_sentences_y)):
         if training_sentences_y[i] == predicted_sentences_y[i]:
             true_prediction += 1
 
     print("TOTAL: ", len(training_sentences_y), " - TRUE PREDICTED: ", true_prediction)
+
 
 if __name__ == '__main__':
     main()
