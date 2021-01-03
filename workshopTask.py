@@ -22,10 +22,32 @@ from nltk.stem import WordNetLemmatizer
 from csv import reader
 from sklearn import linear_model
 import re
+from sklearn import linear_model
+from sklearn import *
+from sklearn import metrics
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+from numpy import mean
+from numpy import std
+
 
 # nltk.download('punkt')
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
+
+
+def print_model_performace_for_test_doc(y_actual, y_pred):
+
+    accuracy = metrics.accuracy_score(y_actual, y_pred)
+    f1score = metrics.f1_score(y_actual, y_pred, average='macro')
+    precision = metrics.precision_score(y_actual, y_pred, average='macro')
+    recall = metrics.recall_score(y_actual, y_pred, average='macro')
+    true_prediction = 0
+    for i in range(len(y_actual)):
+        if y_actual[i] == y_pred[i]:
+            true_prediction += 1
+    print("TOTAL: ", len(y_actual), " - TRUE PREDICTED: ", true_prediction)
+    print('Accuracy: ', accuracy, "\t F1-Score: ", f1score, "\t Precision: ", precision, "\t Recall: ", recall)
 
 def preprocessing(sentence):
     # 1. Word tokenization
@@ -47,12 +69,6 @@ def preprocessing(sentence):
 
 
 def featureExtraction(tags):
-    '''
-        4: çoğul çoğul mu?
-        5: cinsiyetler uyumlu mu?
-        6: word distance - arada kaç kelime var
-        7: NN + NN -> he she it anaphoraNominative
-    '''
 
     rule1_prp_flag = False
     feature_vector = 15 * [0]
@@ -124,24 +140,24 @@ def featureExtraction(tags):
         if tag[1] == "WRB":
             wrb_flag = True
 
-         # RULE: birden fazla büyük harf var mı     
-        if feature_vector[12] == 0:     
-            uppercaseLetters += len(re.findall(r'[A-Z]',tag[0]))
+        # RULE: birden fazla büyük harf var mı
+        if feature_vector[12] == 0:
+            uppercaseLetters += len(re.findall(r'[A-Z]', tag[0]))
             if uppercaseLetters > 1:
                 feature_vector[12] = 1
-                
+
         if tag[1] == "IN":
             in_counter += 1
             if in_counter > 2 and feature_vector[13] == 0:
                 feature_vector[13] = 1
-            
+
     feature_vector[7] = prp_counter
     feature_vector[6] = noun_counter
     feature_vector[8] = verb_counter
     feature_vector[9] = punctuation_counter
     feature_vector[10] = conj_counter
-    
-    if wrb_flag == True and prp_counter>0:
+
+    if wrb_flag == True and prp_counter > 0:
         feature_vector[11] = 1
 
     return feature_vector
@@ -191,16 +207,7 @@ def main():
     lreg.fit(feature_vectors, training_sentences_y)
 
     predicted_sentences_y = lreg.predict(feature_vectors)
-
-    # print("training_sentences_y:  ", training_sentences_y)
-    # print("predicted_sentences_y: ", predicted_sentences_y)
-    true_prediction = 0
-    for i in range(len(training_sentences_y)):
-        if training_sentences_y[i] == predicted_sentences_y[i]:
-            true_prediction += 1
-
-    print("TOTAL: ", len(training_sentences_y), " - TRUE PREDICTED: ", true_prediction)
-
+    print_model_performace_for_test_doc(training_sentences_y, predicted_sentences_y)
 
 if __name__ == '__main__':
     main()
