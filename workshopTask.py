@@ -20,15 +20,10 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from csv import reader
-from sklearn import linear_model
 import re
 from sklearn import linear_model
 from sklearn import *
 from sklearn import metrics
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
-from numpy import mean
-from numpy import std
 
 
 # nltk.download('punkt')
@@ -46,8 +41,10 @@ def print_model_performace_for_test_doc(y_actual, y_pred):
     for i in range(len(y_actual)):
         if y_actual[i] == y_pred[i]:
             true_prediction += 1
-    print("TOTAL: ", len(y_actual), " - TRUE PREDICTED: ", true_prediction)
+    print("------------------------------------------------------------------")
+    print("Confusion_matrix:\n", metrics.confusion_matrix(y_actual, y_pred))
     print('Accuracy: ', accuracy, "\t F1-Score: ", f1score, "\t Precision: ", precision, "\t Recall: ", recall)
+    print("TOTAL: ", len(y_actual), " - TRUE PREDICTED: ", true_prediction)
 
 def preprocessing(sentence):
     # 1. Word tokenization
