@@ -63,7 +63,7 @@ def featureExtraction(tags):
     noun_counter = 0
     conj_counter = 0
     i = 0
-
+    wrb_flag = False
     for tag in tags:
         # RULE 0: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
         if feature_vector[0] == 0:
@@ -109,8 +109,8 @@ def featureExtraction(tags):
         if tag[1].startswith("NN"):
             noun_counter += 1
 
-        if tag[i] == "WRB" and rule1_prp_flag == True:
-            feature_vector[11] = 1
+        if tag[i] == "WRB":
+            wrb_flag = True
 
 
     feature_vector[7] = prp_counter
@@ -118,6 +118,10 @@ def featureExtraction(tags):
     feature_vector[8] = verb_counter
     feature_vector[9] = punctuation_counter
     feature_vector[10] = conj_counter
+
+    if wrb_flag == True and prp_counter>0:
+        feature_vector[11] = 1
+
     return feature_vector
 
 
