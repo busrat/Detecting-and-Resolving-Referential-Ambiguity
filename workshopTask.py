@@ -55,7 +55,7 @@ def featureExtraction(tags):
     '''
 
     rule1_prp_flag = False
-    feature_vector = 13 * [0]
+    feature_vector = 14 * [0]
     prp_counter = 0
     nn_counter = 0
     punctuation_counter = 0
@@ -63,6 +63,7 @@ def featureExtraction(tags):
     noun_counter = 0
     conj_counter = 0
     uppercaseLetters = 0
+    in_counter = 0
     i = 0
     wrb_flag = False
     for tag in tags:
@@ -120,12 +121,17 @@ def featureExtraction(tags):
             if uppercaseLetters > 1:
                 feature_vector[12] = 1
                 
+        if tag[1] == "IN":
+            in_counter += 1
+            if in_counter > 2 and feature_vector[13] == 0:
+                feature_vector[13] = 1
+            
     feature_vector[7] = prp_counter
     feature_vector[6] = noun_counter
     feature_vector[8] = verb_counter
     feature_vector[9] = punctuation_counter
     feature_vector[10] = conj_counter
-
+    
     if wrb_flag == True and prp_counter>0:
         feature_vector[11] = 1
 
