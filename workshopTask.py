@@ -63,7 +63,7 @@ def preprocessing(sentence):
 def featureExtraction(tags):
 
     rule1_prp_flag = False
-    feature_vector = 15 * [0]
+    feature_vector = 16 * [0]
     prp_counter = 0
     nn_counter1 = 0
     nn_counter2 = 0
@@ -141,7 +141,11 @@ def featureExtraction(tags):
             in_counter += 1
             if in_counter > 2 and feature_vector[13] == 0:
                 feature_vector[13] = 1
-
+                
+        # RULE: belirsizlik yaratan kelimeler var mı? bazı işler: hangi işler? bu okul:hangi okul? vs   
+        if tag[0].lower() in ['more','some','any','other','most','another', 'this', 'that', 'many'] and feature_vector[15] == 0:
+            feature_vector[15] = 1
+            
     feature_vector[7] = prp_counter
     feature_vector[6] = noun_counter
     feature_vector[8] = verb_counter
@@ -200,4 +204,4 @@ def main():
     print_model_performace_for_test_doc(training_sentences_y, predicted_sentences_y)
 
 if __name__ == '__main__':
-    main()
+    main()   
