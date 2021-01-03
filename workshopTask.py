@@ -69,7 +69,7 @@ def featureExtraction(tags):
         if feature_vector[0] == 0:
             if tag[1] == "PRP":  # header_property he, she, it, they
                 rule1_prp_flag = True
-            if rule1_prp_flag == True and (tag[1] == "NN" or tag[1] == "NNP" or tag[1] == "NNS" or tag[1] == "NNPS"):
+            if rule1_prp_flag == True and tag[1].startswith("NN"):
                 feature_vector[0] = 1
 
         # RULE 1: bağlaç var mı: varsa 1 yoksa 0
@@ -86,7 +86,7 @@ def featureExtraction(tags):
 
         # RULE 3: NN + NN -> he she it var mı: varsa 1 yoksa 0
         if feature_vector[3] == 0:
-            if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP" or tag[1] == "NNPS":
+            if tag[1].startswith("NN"):
                 nn_counter += 1
             if nn_counter >= 2:
                 if tag[1] == "PRP":
@@ -106,7 +106,7 @@ def featureExtraction(tags):
                 feature_vector[5] = 1
 
         # RULE 6: referent olabileceklerin sayısı
-        if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP" or tag[1] == "NNPS":
+        if tag[1].startswith("NN"):
             noun_counter += 1
 
 
