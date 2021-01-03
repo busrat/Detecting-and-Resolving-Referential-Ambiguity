@@ -109,7 +109,7 @@ def featureExtraction(tags):
         if tag[1].startswith("NN"):
             noun_counter += 1
 
-        if tag[i] == "WRB":
+        if tag[1] == "WRB":
             wrb_flag = True
 
 
