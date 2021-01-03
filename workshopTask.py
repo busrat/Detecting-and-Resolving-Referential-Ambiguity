@@ -55,9 +55,10 @@ def featureExtraction(tags):
     '''
 
     rule1_prp_flag = False
-    feature_vector = 14 * [0]
+    feature_vector = 15 * [0]
     prp_counter = 0
-    nn_counter = 0
+    nn_counter1 = 0
+    nn_counter2 = 0
     punctuation_counter = 0
     verb_counter = 0
     noun_counter = 0
@@ -86,13 +87,21 @@ def featureExtraction(tags):
             if prp_counter > 1 and feature_vector[2] == 0:
                 feature_vector[2] = 1
 
-        # RULE 3: NN + NN -> he she it var mı: varsa 1 yoksa 0
+        # RULE 3: noun + noun -> pronoun varsa 1 yoksa 0 - tekil
         if feature_vector[3] == 0:
-            if tag[1].startswith("NN"):
-                nn_counter += 1
-            if nn_counter >= 2:
-                if tag[1] == "PRP":
+            if tag[1] == "NN" or tag[1] == "NNP":
+                nn_counter1 += 1
+            if nn_counter1 >= 2:
+                if tag[0] in ['he', 'she', 'it', 'He', 'She', 'It']:
                     feature_vector[3] = 1
+
+        # RULE 11: noun + noun -> pronoun varsa 1 yoksa 0 - çoğul
+        if feature_vector[3] == 0:
+            if tag[1] == "NNS" or tag[1] == "NNPS":
+                nn_counter2 += 1
+            if nn_counter2 >= 2:
+                if tag[0] in ['they', 'They']:
+                    feature_vector[14] = 1
 
         # RULE 4: verb sayısı
         if tag[1].startswith("VB"):
