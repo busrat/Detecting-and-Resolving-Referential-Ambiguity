@@ -21,7 +21,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from csv import reader
 from sklearn import linear_model
-
+import re
 
 # nltk.download('punkt')
 # nltk.download('wordnet')
@@ -55,13 +55,14 @@ def featureExtraction(tags):
     '''
 
     rule1_prp_flag = False
-    feature_vector = 12 * [0]
+    feature_vector = 13 * [0]
     prp_counter = 0
     nn_counter = 0
     punctuation_counter = 0
     verb_counter = 0
     noun_counter = 0
     conj_counter = 0
+    uppercaseLetters = 0
     i = 0
     wrb_flag = False
     for tag in tags:
@@ -106,13 +107,19 @@ def featureExtraction(tags):
                 feature_vector[5] = 1
 
         # RULE 6: referent olabileceklerin sayısı
-        if tag[1].startswith("NN"):
+        # if tag[1].startswith("NN"):
+        if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
             noun_counter += 1
 
         if tag[1] == "WRB":
             wrb_flag = True
 
-
+         # RULE: birden fazla büyük harf var mı     
+        if feature_vector[12] == 0:     
+            uppercaseLetters += len(re.findall(r'[A-Z]',tag[0]))
+            if uppercaseLetters > 1:
+                feature_vector[12] = 1
+                
     feature_vector[7] = prp_counter
     feature_vector[6] = noun_counter
     feature_vector[8] = verb_counter
