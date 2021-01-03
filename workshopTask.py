@@ -6,6 +6,7 @@
 # D. L. Thanh, \Two machine learning approaches to coreference resolution," 2009.
 # https://journals.ekb.eg/article_15909.html
 
+# https://pythonprogramming.net/part-of-speech-tagging-nltk-tutorial/
 
 
 #Detection:
