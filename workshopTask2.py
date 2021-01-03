@@ -54,7 +54,7 @@ def featureExtraction(tags):
 
     feature_vector = [0]
 
-    # candidate i and a pronoun j
+    # for candidate i and a pronoun j
     # word_distance: i-j aradasında kaç kelime var (integer)
     # gender_agreement: i-j aynı cinsiyette mi (her - she)
     # number_agreement: i-j'nin ikisi de çoğul ya da tekil mi
