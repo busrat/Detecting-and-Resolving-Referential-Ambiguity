@@ -26,11 +26,6 @@ from sklearn import *
 from sklearn import metrics
 
 
-# nltk.download('punkt')
-# nltk.download('wordnet')
-# nltk.download('averaged_perceptron_tagger')
-
-
 def print_model_performace_for_test_doc(y_actual, y_pred):
 
     accuracy = metrics.accuracy_score(y_actual, y_pred)
@@ -78,7 +73,6 @@ def featureExtraction(tags):
     conj_counter = 0
     uppercaseLetters = 0
     in_counter = 0
-    i = 0
     wrb_flag = False
     for tag in tags:
         # RULE 0: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
@@ -192,7 +186,6 @@ def main():
             i = 1
 
     feature_vectors = []
-    i = 0
     for sentence in training_sentences_x:
         tags = preprocessing(sentence)
         print(sentence)
