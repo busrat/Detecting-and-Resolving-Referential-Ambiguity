@@ -143,7 +143,7 @@ def featureExtraction(tags):
                 feature_vector[13] = 1
                 
         # RULE: belirsizlik yaratan kelimeler var mı? bazı işler: hangi işler? bu okul:hangi okul? vs   
-        if tag[0].lower() in ['more','some','any','other','most','another', 'this', 'that', 'many'] and feature_vector[15] == 0:
+        if tag[0].lower() in ['more','some','any','other','most','another', 'this', 'that', 'many', 'certain'] and feature_vector[15] == 0:
             feature_vector[15] = 1
             
     feature_vector[7] = prp_counter
