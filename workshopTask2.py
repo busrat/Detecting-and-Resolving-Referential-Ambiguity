@@ -52,7 +52,8 @@ def preprocessing(sentence):
 
 def featureExtraction(tags, ref):
     print("--------------------------------------")
-    print(tags)
+    print("tags: ", tags)
+    print("ref: ", ref)
 
 
     # for candidate i and a pronoun j
@@ -62,68 +63,51 @@ def featureExtraction(tags, ref):
     # parallelism: i-j ikisi de subject ya da object mi
     # sonrasında and + NN var mı?
     # cümlenin uzunluğu
-    print(type(tags))
     antecedents = [] # The man is hungry, (NN*)
     antecedent_number = 0
-    #referentials = []   # so, he eats dinnner. (referential)
-    anaphoras = []
+    referentials = []
     index = 0
 
-
-    #k = 0 # reflere NNP tag vermiş, o karışmasın diye tag değiştiriyorum burda
-    #for tag in tags:
-    #    if tag[0] == "BEGINreferential" or tag[0] == "ENDreferential":
-    #        tags[k] = (tag[0], 'REFERANTIAL')
-    #    k = k + 1
-
+    index = 0
     for tag in tags:
         if tag[1].startswith("NN"):
-            antecedent_number = antecedent_number + 1
+            antecedent_number += 1
             antecedents.append([index,tag[0],tag[1]])
 
-        if tag[1].startswith("PRP"):
-            anaphoras.append([index,tag[0],tag[1]])
+        if tag[0] in ref:
+            referentials.append([index, tag[0], tag[1]])
         index = index + 1
 
-        #if tag[1] == "BEGINreferential":
-        #    referentials.append([index,tag[0],tag[1]])
 
+    # print("antecedents: ", antecedents)
+    # print("referentials: ", referentials)
 
-    #if antecedents != [] and referentials != []:  # there should be at least one from both of them.
-        # lenght of sentence
-     #   feature_vector[0] = len(tags)
-     #   for antecedent in antecedents:
-     #       for anaphora in anaphoras:
-     #           feature_vector[0] = len(tags)
-
-    print("antecedents")
-    print(antecedents)
-    print("anaphoras")
-    print(anaphoras)
-    print("ref")
-    print(ref)
-    #print("tags: ", tags)
-
-    vector_size = 0
-    #for antecedent in antecedents:
-    #    vector_size = vector_size + len(antecedent)
-    #print(vector_size)
     feature_vectors = []
-    feature_vector = 2*[0]
-    #feature_vector = np.zeros((len(antecedents), 2))
-    #feature_vector = [[0] * len(antecedents)] #* len(antecedents)
-    i=0
-    for anaphora in anaphoras:
+    i = 0
+    for referential in referentials:
         for antecedent in antecedents:
-            feature_vector = 2*[0]
-            if anaphora[1] == ref:
-                #print(anaphora[1])
-                if anaphora[0] < antecedent[0]: #1 if anaphora before antecedent
-                    feature_vector[0] = 1
-            if len(antecedents) == len(anaphoras): #1 if anaphora number is equal to antecedent number
-                feature_vector[1] = 1
+            print("Current: referential: ", referential, " - antecedent: ", antecedent)
+            feature_vector = 3*[0]
+            if referential[0] < antecedent[0]: # if anaphora before antecedent
+                feature_vector[0] = 1
+            #cümledeki tüm antecedent-ref ihtimallerinde aşağıdaki hepsi için aynı olacak, o yüzden yoruma aldım.
+            #if len(antecedents) == len(referentials): # if anaphora number is equal to antecedent number
+            #    feature_vector[1] = 1
 
-        feature_vectors.append(feature_vector)
+            # kelimeler arası mutlak uzaklık
+            word_distance = abs(referential[0]- antecedent[0])
+            feature_vector[1] = word_distance
+
+            # number_agreement (tekil-tekil, çoğul-çoğul)
+            if (referential[2].lower() in ['he', 'she', 'it', 'himself', 'herself', 'itself', 'his', 'her', 'its', 'him'] \
+                and antecedent[2] == "NN" or antecedent[2] == "NNP") or (referential[2].lower() in ['they', 'them', 'their', 'themselves']
+                                                                         and antecedent[2] == "NNS" or antecedent[2] == "NNPS"):
+                feature_vector[2] = 1
+
+            
+
+            print("Current: feature vector ", feature_vector)
+            feature_vectors.append(feature_vector)
     return feature_vectors
 
 
@@ -177,16 +161,10 @@ def main():
                 try: sentence = sentence.replace('<referential id="b">', "")
                 except: pass
                 sentence = sentence.replace("</referential>", "")
-                
+
                 referential_list.append(ref_list)
                 training_sentences_x.append(sentence)
 
-            print("referential_list: ", referential_list)
-            print("-----------------------------------")
-
-    print(training_sentences_x)
-
-    print((referential_list))
     feature_vectors = []
     i=0
     for sentence in training_sentences_x:
