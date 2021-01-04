@@ -16,6 +16,7 @@ import re
 from sklearn import linear_model
 from sklearn import *
 from sklearn import metrics
+import csv
 
 
 def print_model_performace_for_test_doc(y_actual, y_pred):
@@ -130,7 +131,7 @@ def main():
     training_sentences_y = []
     training_sentences_y_id = []
     # open file in read mode
-    with open('Data/disambiguation_answers_file.csv', 'r', encoding='utf8') as read_obj:
+    with open('disambiguation_answers_file.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
@@ -144,29 +145,46 @@ def main():
     referential_list = []
     training_sentences_x = []
     # open file in read mode
-    with open('Data/training_set.csv', 'r', encoding='utf8') as read_obj:
+    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
         for row in csv_reader:
-            #print(row)
+            sentence = ', '.join(row[1:])
             # row variable is a list that represents a row in csv
-            #new_row = row[1].replace("<referential>", "")
-            #new_row = new_row.replace("</referential>", "")
-            #new_row = row[1].replace("<referential>", "BEGINreferential ")
-            #new_row = new_row.replace("</referential>", " ENDreferential")
             if row[0] in training_sentences_y_id: # if it is unambiguous, add
-                training_sentences_x.append(row[1])
-                #print(row[1])
-                if row[1].find(">") != -1 and row[1].find("</") != -1:
-                    referential_list.append(row[1][row[1].find(">") + 1:row[1].find("</")])
-                else:
-                    referential_list.append("")
+
+                sentence = ', '.join(row[1:]) # csv_reader , lerden ayırdığı için cümle için virgülleri de ayırıyor. onları birleştiriyoruz.
+
+                ref_list, index_ref_start_, index_ref_starta, index_ref_startb, l = [], [], [], [], 0
+                index_ref_start_ = [m.start() for m in re.finditer('<referential>', sentence)]
+                index_ref_starta = [m.start() for m in re.finditer('<referential id="a">', sentence)]
+                index_ref_startb = [m.start() for m in re.finditer('<referential id="b">', sentence)]
+                index_ref_end = [m.start() for m in re.finditer('</referential>', sentence)]
+
+                if len(index_ref_start_) > 0: index_ref_start, l = index_ref_start_, len('<referential>')
+                if len(index_ref_starta) > 0: index_ref_start, l = index_ref_starta, len('<referential id="a">')
+                if len(index_ref_startb) > 0: index_ref_start, l = index_ref_startb, len('<referential id="b">')
+
+                for index in range(len(index_ref_start)):
+                    ref = sentence[index_ref_start[index]+l:index_ref_end[index]]
+                    ref_list.append(ref)
+
+                try: sentence = sentence.replace('<referential>', "")
+                except: pass
+                try: sentence = sentence.replace('<referential id="a">', "")
+                except: pass
+                try: sentence = sentence.replace('<referential id="b">', "")
+                except: pass
+                sentence = sentence.replace("</referential>", "")
+                
+                referential_list.append(ref_list)
+                training_sentences_x.append(sentence)
+
+            print("referential_list: ", referential_list)
+            print("-----------------------------------")
 
     print(training_sentences_x)
-    #for x in training_sentences_x:
-    #   x = x.replace("<referential>", " ")
-    #   x = x.replace("</referential>", " ")
 
     print((referential_list))
     feature_vectors = []
