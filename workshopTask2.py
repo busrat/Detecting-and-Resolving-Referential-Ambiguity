@@ -7,7 +7,7 @@
 # Resolution:
 #   Precision = number of correctly resolved anaphors divided by the total number of anaphors attempted to be resolved
 #   Recall = number of correctly resolved anaphors divided by the total number of unambiguous anaphors
-
+import numpy as np
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -49,42 +49,88 @@ def preprocessing(sentence):
     return tagged_words
 
 
-def featureExtraction(tags):
+def featureExtraction(tags, ref):
     print("--------------------------------------")
     print(tags)
-    feature_vector = [0]
+
 
     # for candidate i and a pronoun j
     # word_distance: i-j aradasında kaç kelime var (integer)
     # gender_agreement: i-j aynı cinsiyette mi (her - she)
     # number_agreement: i-j'nin ikisi de çoğul ya da tekil mi
     # parallelism: i-j ikisi de subject ya da object mi
-
-    antecedent_indexes = [] # The man is hungry, (NN*)
-    anaphora_indexes = []   # so, he eats dinnner. (PRP*)
+    # sonrasında and + NN var mı?
+    # cümlenin uzunluğu
+    print(type(tags))
+    antecedents = [] # The man is hungry, (NN*)
+    antecedent_number = 0
+    #referentials = []   # so, he eats dinnner. (referential)
+    anaphoras = []
     index = 0
+
+
+    #k = 0 # reflere NNP tag vermiş, o karışmasın diye tag değiştiriyorum burda
+    #for tag in tags:
+    #    if tag[0] == "BEGINreferential" or tag[0] == "ENDreferential":
+    #        tags[k] = (tag[0], 'REFERANTIAL')
+    #    k = k + 1
+
     for tag in tags:
         if tag[1].startswith("NN"):
-            antecedent_indexes.append([index,tag[0],tag[1]])
+            antecedent_number = antecedent_number + 1
+            antecedents.append([index,tag[0],tag[1]])
 
-        if tag[1] == "PRP":
-            anaphora_indexes.append([index,tag[0],tag[1]])
+        if tag[1].startswith("PRP"):
+            anaphoras.append([index,tag[0],tag[1]])
+        index = index + 1
 
-        #if antecedent_indexes != [] and anaphora_indexes != []: # there should be at least one from both of them.
+        #if tag[1] == "BEGINreferential":
+        #    referentials.append([index,tag[0],tag[1]])
 
-        index += 1
-    print("antecedent_indexes")
-    print(antecedent_indexes)
-    print("anaphora_indexes")
-    print(anaphora_indexes)
-    return feature_vector
+
+    #if antecedents != [] and referentials != []:  # there should be at least one from both of them.
+        # lenght of sentence
+     #   feature_vector[0] = len(tags)
+     #   for antecedent in antecedents:
+     #       for anaphora in anaphoras:
+     #           feature_vector[0] = len(tags)
+
+    print("antecedents")
+    print(antecedents)
+    print("anaphoras")
+    print(anaphoras)
+    print("ref")
+    print(ref)
+    #print("tags: ", tags)
+
+    vector_size = 0
+    #for antecedent in antecedents:
+    #    vector_size = vector_size + len(antecedent)
+    #print(vector_size)
+    feature_vectors = []
+    feature_vector = 2*[0]
+    #feature_vector = np.zeros((len(antecedents), 2))
+    #feature_vector = [[0] * len(antecedents)] #* len(antecedents)
+    i=0
+    for anaphora in anaphoras:
+        for antecedent in antecedents:
+            feature_vector = 2*[0]
+            if anaphora[1] == ref:
+                #print(anaphora[1])
+                if anaphora[0] < antecedent[0]: #1 if anaphora before antecedent
+                    feature_vector[0] = 1
+            if len(antecedents) == len(anaphoras): #1 if anaphora number is equal to antecedent number
+                feature_vector[1] = 1
+
+        feature_vectors.append(feature_vector)
+    return feature_vectors
 
 
 def main():
     training_sentences_y = []
     training_sentences_y_id = []
     # open file in read mode
-    with open('disambiguation_answers_file.csv', 'r', encoding='utf8') as read_obj:
+    with open('Data/disambiguation_answers_file.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
@@ -95,25 +141,43 @@ def main():
     del training_sentences_y[0]  # delete header
     del training_sentences_y_id[0]  # delete header
 
+    referential_list = []
     training_sentences_x = []
-    training_sentences_x_id = []
     # open file in read mode
-    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
+    with open('Data/training_set.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
         for row in csv_reader:
+            #print(row)
             # row variable is a list that represents a row in csv
-            new_row = row[1].replace("<referential>", "")
-            new_row = new_row.replace("</referential>", "")
-            if row[0] in training_sentences_y_id: # if it is ambiguous, add
-                training_sentences_x.append(new_row)
+            #new_row = row[1].replace("<referential>", "")
+            #new_row = new_row.replace("</referential>", "")
+            #new_row = row[1].replace("<referential>", "BEGINreferential ")
+            #new_row = new_row.replace("</referential>", " ENDreferential")
+            if row[0] in training_sentences_y_id: # if it is unambiguous, add
+                training_sentences_x.append(row[1])
+                #print(row[1])
+                if row[1].find(">") != -1 and row[1].find("</") != -1:
+                    referential_list.append(row[1][row[1].find(">") + 1:row[1].find("</")])
+                else:
+                    referential_list.append("")
 
+    print(training_sentences_x)
+    #for x in training_sentences_x:
+    #   x = x.replace("<referential>", " ")
+    #   x = x.replace("</referential>", " ")
+
+    print((referential_list))
     feature_vectors = []
+    i=0
     for sentence in training_sentences_x:
         tags = preprocessing(sentence)
-        feature_vector = featureExtraction(tags)
+        feature_vector = featureExtraction(tags, referential_list[i])
+        print(feature_vector)
         feature_vectors.append(feature_vector)
+        i=i+1
+
     '''
     lreg = linear_model.LogisticRegression()
     lreg.fit(feature_vectors, training_sentences_y)
