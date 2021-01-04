@@ -27,7 +27,6 @@ from sklearn import metrics
 
 
 def print_model_performace_for_test_doc(y_actual, y_pred):
-
     accuracy = metrics.accuracy_score(y_actual, y_pred)
     f1score = metrics.f1_score(y_actual, y_pred, average='macro')
     precision = metrics.precision_score(y_actual, y_pred, average='macro')
@@ -40,6 +39,7 @@ def print_model_performace_for_test_doc(y_actual, y_pred):
     print("Confusion_matrix:\n", metrics.confusion_matrix(y_actual, y_pred))
     print('Accuracy: ', accuracy, "\t F1-Score: ", f1score, "\t Precision: ", precision, "\t Recall: ", recall)
     print("TOTAL: ", len(y_actual), " - TRUE PREDICTED: ", true_prediction)
+
 
 def preprocessing(sentence):
     # 1. Word tokenization
@@ -61,7 +61,6 @@ def preprocessing(sentence):
 
 
 def featureExtraction(tags):
-
     rule1_prp_flag = False
     feature_vector = 16 * [0]
     prp_counter = 0
@@ -124,8 +123,8 @@ def featureExtraction(tags):
                 feature_vector[5] = 1
 
         # RULE 6: referent olabileceklerin sayısı
-        # if tag[1].startswith("NN"):
-        if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
+        if tag[1].startswith("NN"):
+        #if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
             noun_counter += 1
 
         if tag[1] == "WRB":
@@ -141,11 +140,12 @@ def featureExtraction(tags):
             in_counter += 1
             if in_counter > 2 and feature_vector[13] == 0:
                 feature_vector[13] = 1
-                
-        # RULE: belirsizlik yaratan kelimeler var mı? bazı işler: hangi işler? bu okul:hangi okul? vs   
-        if tag[0].lower() in ['more','some','any','other','most','another', 'this', 'that', 'many', 'certain'] and feature_vector[15] == 0:
+
+        # RULE: belirsizlik yaratan kelimeler var mı? bazı işler: hangi işler? bu okul:hangi okul? vs
+        if tag[0].lower() in ['more', 'some', 'any', 'other', 'most', 'another', 'this', 'that', 'many', 'certain'] and \
+                feature_vector[15] == 0:
             feature_vector[15] = 1
-            
+
     feature_vector[7] = prp_counter
     feature_vector[6] = noun_counter
     feature_vector[8] = verb_counter
@@ -203,5 +203,6 @@ def main():
     predicted_sentences_y = lreg.predict(feature_vectors)
     print_model_performace_for_test_doc(training_sentences_y, predicted_sentences_y)
 
+
 if __name__ == '__main__':
-    main()   
+    main()
