@@ -50,6 +50,7 @@ def preprocessing(sentence):
 
 
 def featureExtraction(tags):
+    print("--------------------------------------")
     print(tags)
     feature_vector = [0]
 
@@ -58,20 +59,24 @@ def featureExtraction(tags):
     # gender_agreement: i-j aynı cinsiyette mi (her - she)
     # number_agreement: i-j'nin ikisi de çoğul ya da tekil mi
     # parallelism: i-j ikisi de subject ya da object mi
-    
+
     antecedent_indexes = [] # The man is hungry, (NN*)
     anaphora_indexes = []   # so, he eats dinnner. (PRP*)
     index = 0
     for tag in tags:
         if tag[1].startswith("NN"):
-            antecedent_indexes.append(index)
+            antecedent_indexes.append([index,tag[0],tag[1]])
 
         if tag[1] == "PRP":
-            anaphora_indexes.append(index)
+            anaphora_indexes.append([index,tag[0],tag[1]])
 
-        if antecedent_indexes != [] and anaphora_indexes != []: # there should be at least one from both of them.
-            
+        #if antecedent_indexes != [] and anaphora_indexes != []: # there should be at least one from both of them.
 
+        index += 1
+    print("antecedent_indexes")
+    print(antecedent_indexes)
+    print("anaphora_indexes")
+    print(anaphora_indexes)
     return feature_vector
 
 
