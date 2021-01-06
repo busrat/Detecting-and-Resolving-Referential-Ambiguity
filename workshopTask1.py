@@ -74,20 +74,20 @@ def featureExtraction(tags):
     in_counter = 0
     wrb_flag = False
     for tag in tags:
-        # RULE 0: he she it, NNP'den önce geliyor mu: geliyorsa 1, gelmiyorsa 0
+        # RULE 0: 1 if NN is before NNP in the sentence
         if feature_vector[0] == 0:
             if tag[1] == "PRP":  # header_property he, she, it, they
                 rule1_prp_flag = True
             if rule1_prp_flag == True and tag[1].startswith("NN"):
                 feature_vector[0] = 1
 
-        # RULE 1: bağlaç var mı: varsa 1 yoksa 0
+        # RULE 1: 1 if there is CC(and, because, or etc.) in the sentence
         if tag[1] == "CC":
             conj_counter += 1
             if feature_vector[1] == 0:
                 feature_vector[1] = 1
 
-        # RULE 2: birden fazla pronoun var mı: varsa 1 yoksa 0
+        # RULE 2: 1 if there are more than one PRP
         if tag[1] == "PRP":
             prp_counter += 1
             if prp_counter > 1 and feature_vector[2] == 0:
@@ -127,15 +127,16 @@ def featureExtraction(tags):
         #if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
             noun_counter += 1
 
+        #1 if there is WRB (when, where etc.)
         if tag[1] == "WRB":
             wrb_flag = True
 
-        # RULE: birden fazla büyük harf var mı
+        # RULE: 1 if there are more than one capital letter
         if feature_vector[12] == 0:
             uppercaseLetters += len(re.findall(r'[A-Z]', tag[0]))
             if uppercaseLetters > 1:
                 feature_vector[12] = 1
-
+        #RULE: 1 if the number of IN (with, in, under, of etc) greater than 2
         if tag[1] == "IN":
             in_counter += 1
             if in_counter > 2 and feature_vector[13] == 0:
@@ -161,7 +162,7 @@ def featureExtraction(tags):
 def main():
     training_sentences_x = []
     # open file in read mode
-    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
+    with open('Data/training_set.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
@@ -176,7 +177,7 @@ def main():
     training_sentences_y = []
     # open file in read mode
     i = 0
-    with open('detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
+    with open('Data/detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
