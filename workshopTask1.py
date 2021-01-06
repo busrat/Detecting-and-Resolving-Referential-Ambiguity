@@ -178,15 +178,13 @@ def main():
             sentence = sentence.replace("</referential>", "")
 
             training_sentences_x.append(sentence)
-
-    del training_sentences_x[0]  # delete header
-
+            
     del training_sentences_x[0]  # delete header
 
     training_sentences_y = []
     # open file in read mode
     i = 0
-    with open('Data/detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
+    with open('detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
