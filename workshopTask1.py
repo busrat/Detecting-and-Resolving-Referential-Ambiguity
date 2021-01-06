@@ -84,8 +84,6 @@ def featureExtraction(tags):
         # RULE 1: 1 if there is CC(and, because, or etc.) in the sentence
         if tag[1] == "CC":
             conj_counter += 1
-            if feature_vector[1] == 0:
-                feature_vector[1] = 1
 
         # RULE 2: 1 if there are more than one PRP
         if tag[1] == "PRP":
@@ -151,7 +149,7 @@ def featureExtraction(tags):
     feature_vector[6] = noun_counter
     feature_vector[8] = verb_counter
     feature_vector[9] = punctuation_counter
-    feature_vector[10] = conj_counter
+    feature_vector[1] = conj_counter
 
     if wrb_flag == True and prp_counter > 0:
         feature_vector[11] = 1
