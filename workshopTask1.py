@@ -162,15 +162,24 @@ def featureExtraction(tags):
 def main():
     training_sentences_x = []
     # open file in read mode
-    with open('Data/training_set.csv', 'r', encoding='utf8') as read_obj:
+    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
         for row in csv_reader:
-            # row variable is a list that represents a row in csv
-            new_row = row[1].replace("<referential>", "")
-            new_row = new_row.replace("</referential>", "")
-            training_sentences_x.append(new_row)
+            sentence = ', '.join(row[1:]) # csv_reader , lerden ayırdığı için cümle için virgülleri de ayırıyor. onları birleştiriyoruz.
+
+            try: sentence = sentence.replace('<referential>', "")
+            except: pass
+            try: sentence = sentence.replace('<referential id="a">', "")
+            except: pass
+            try: sentence = sentence.replace('<referential id="b">', "")
+            except: pass
+            sentence = sentence.replace("</referential>", "")
+
+            training_sentences_x.append(sentence)
+
+    del training_sentences_x[0]  # delete header
 
     del training_sentences_x[0]  # delete header
 
