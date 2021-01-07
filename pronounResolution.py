@@ -1,3 +1,5 @@
+# java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -timeout 15000
+
 from pycorenlp import StanfordCoreNLP
 import pandas as pd
 nlp = StanfordCoreNLP('http://localhost:9000')
