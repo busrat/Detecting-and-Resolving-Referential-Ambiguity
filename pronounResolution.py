@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan  7 00:05:30 2021
-
-@author: busra
-"""
-
 from pycorenlp import StanfordCoreNLP
 import pandas as pd
 nlp = StanfordCoreNLP('http://localhost:9000')
