@@ -3,6 +3,7 @@
 # Not.
 # Sadece baz olması için, taslak. 1ref_disambiguation_answers_file.csv ile çalışıyor çünkü iki referanslıları göz önünde bulundurmuyor şu an.
 # sanırım bir takım string okuma, veri türü vs işlemlerle ilgili problemler var. debug edilmesi ve detaylı bakılması gerekiyor.
+#true predicted 16'ya geldikten sonra bekletiyor bir süre oradaki cümle çok uzun diye
 
 from pycorenlp import StanfordCoreNLP
 from csv import reader
