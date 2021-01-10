@@ -15,18 +15,21 @@ def accuracyCalculation(training_sentences_y, predicted_y):
     total = len(training_sentences_y)
     true_prediction = 0
     for i in range(len(predicted_y)):
-        label = predicted_y[i].lower()
-        found = training_sentences_y[i].lower()
-        print("->", label, "<--->", found, "<-")
+        found = predicted_y[i].lower()
+        label = training_sentences_y[i].lower()
+
         if label == found or label.replace(" ", "") == found.replace(" ", "") or label in found or found in label:
+            print("TRUE ->", label, "<--->", found, "<-")
             true_prediction += 1
+        else:
+            print("FALSE ->", label, "<--->", found, "<-")
     return true_prediction, total
 
 
 def resolve(annotatiton, reference):
     annotationValues = [k for k in annotatiton['corefs'].values()]
     print(annotationValues)
-    print("*"*50)
+    #print("*"*50)
     annotationValuesList = [item for sublist in annotationValues for item in sublist]
 
     referenceIndex = [i for i, d in enumerate(annotationValuesList) if d['text'].lower() == reference[0].lower()]
@@ -37,7 +40,7 @@ def resolve(annotatiton, reference):
         referenceFeatures = \
         [d for i, d in enumerate(annotationValuesList) if d['text'].lower() == reference[0].lower()][0]
         del annotationValuesList[referenceIndex]
-        print(annotationValuesList)
+        #print(annotationValuesList)
         candidateScores = {}
         distances = {}
         for candidate in annotationValuesList:
@@ -47,19 +50,21 @@ def resolve(annotatiton, reference):
             distances[candidate['text']] = distance
 
             if candidate['type'] == referenceFeatures['type']:
-                candidateScores[candidate['text']] += 0
+                candidateScores[candidate['text']] += 1
             if candidate['number'] == referenceFeatures['number']:
-                candidateScores[candidate['text']] += 0
+                candidateScores[candidate['text']] += 1
             if candidate['gender'] == referenceFeatures['gender']:
-                candidateScores[candidate['text']] += 0
+                candidateScores[candidate['text']] += 1
             if candidate['animacy'] == referenceFeatures['animacy']:
-                candidateScores[candidate['text']] += 0
+                candidateScores[candidate['text']] += 1
+
             print(candidate['text'], ": ", candidateScores[candidate['text']])
+
         closest_candidate = min(distances, key=distances.get)
         if distances[closest_candidate]>0:
-            candidateScores[closest_candidate] += 0
+            candidateScores[closest_candidate] += 1
         word = max(candidateScores, key=candidateScores.get)
-        print("word:", word)
+        #print("word:", word)
         return word
 
 def main():
@@ -128,7 +133,7 @@ def main():
         print(sentence)
         # annotate sentence
         annotatiton = nlp.annotate(sentence,
-                                   properties={'timeout': '900000', 'annotators': 'coref', 'outputFormat': 'json',
+                                   properties={'timeout': '900000', 'annotators': 'dcoref', 'outputFormat': 'json',
                                                'ner.useSUTime': 'false'})
         try:
             predicted_y.append(resolve(annotatiton, referential_list[i]))
