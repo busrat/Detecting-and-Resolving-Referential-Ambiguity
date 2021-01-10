@@ -1,4 +1,4 @@
-# java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -timeout 15000
+# java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -timeout 900000
 
 # Not.
 # Sadece baz olması için, taslak. 1ref_disambiguation_answers_file.csv ile çalışıyor çünkü iki referanslıları göz önünde bulundurmuyor şu an.
@@ -14,39 +14,63 @@ def accuracyCalculation(training_sentences_y, predicted_y):
     total = len(training_sentences_y)
     true_prediction = 0
     for i in range(len(predicted_y)):
-        print("->", predicted_y[i].lower(), "<--->", training_sentences_y[i].lower().replace('"', '').replace(' ', ''),"<-")
+        label = predicted_y[i].lower()
+        found = training_sentences_y[i].lower()
+        print("->", label, "<--->", found,"<-")
         #print(type(training_sentences_y[i]), " --- ", type(predicted_y[i]))
-        if predicted_y[i].lower() == training_sentences_y[i].lower().replace('"', '').replace(' ', ''):
+        if label == found or label.replace(" ", "") == found.replace(" ", "") or label in found or found in label:
             true_prediction += 1
     return true_prediction,total
 
 def resolve(annotatiton, reference):
+    annotationValues = [k for k in annotatiton['corefs'].values()]
+    annotationValuesList = [item for sublist in annotationValues for item in sublist]
+    referenceIndex = [i for i, d in enumerate(annotationValuesList) if d['text'].lower() == reference[0].lower()]
+    if (len(referenceIndex) == 0):
+        return "none"
+    else:
+        referenceIndex = referenceIndex[0]
+        referenceFeatures = [d for i, d in enumerate(annotationValuesList) if d['text'].lower() == reference[0].lower()][0]
+        del annotationValuesList[referenceIndex]
+        candidateScores = {}
+        for candidate in annotationValuesList:
+            candidateScores[candidate['text']] = 0
+            if candidate['type'] == referenceFeatures['type']:
+                candidateScores[candidate['text']] += 1
+            if candidate['number'] == referenceFeatures['number']:
+                candidateScores[candidate['text']] += 2
+            if candidate['gender'] == referenceFeatures['gender']:
+                candidateScores[candidate['text']] += 2
+            if candidate['animacy'] == referenceFeatures['animacy']:
+                candidateScores[candidate['text']] += 1
+        return max(candidateScores, key=candidateScores.get)
 
-    candidate_vectors = []
-    reference_vector = {}
-    for key, value in annotatiton['corefs'].items():
-        if value[0]['text']==reference[0]: #burda sadece 1 ref olduğunu varsaydık şimdilik
-            reference_vector = value[0]
-        else:
-            candidate_vectors.append(value[0])
+                
+    # candidate_vectors = []
+    # reference_vector = {}
+    # for key, value in annotatiton['corefs'].items():
+    #     if value[0]['text']==reference[0]: #burda sadece 1 ref olduğunu varsaydık şimdilik
+    #         reference_vector = value[0]
+    #     else:
+    #         candidate_vectors.append(value[0])
 
-    scores = len(candidate_vectors) * [0]
-    candidates_text = len(candidate_vectors) * [""]
-    if reference_vector != {}: # if there is one or more references
-        for i, candidate in enumerate(candidate_vectors):
-            candidates_text[i] = candidate['text']
-            if candidate['type'] == reference_vector['type']:
-                scores[i] += 1
-            if candidate['number'] == reference_vector['number']:
-                scores[i] += 1
-            if candidate['gender'] == reference_vector['gender']:
-                scores[i] += 1
-            if candidate['animacy'] == reference_vector['animacy']:
-                scores[i] += 1
+    # scores = len(candidate_vectors) * [0]
+    # candidates_text = len(candidate_vectors) * [""]
+    # if reference_vector != {}: # if there is one or more references
+    #     for i, candidate in enumerate(candidate_vectors):
+    #         candidates_text[i] = candidate['text']
+    #         if candidate['type'] == reference_vector['type']:
+    #             scores[i] += 1
+    #         if candidate['number'] == reference_vector['number']:
+    #             scores[i] += 1
+    #         if candidate['gender'] == reference_vector['gender']:
+    #             scores[i] += 1
+    #         if candidate['animacy'] == reference_vector['animacy']:
+    #             scores[i] += 1
 
-    index = scores.index(max(scores))
+    # index = scores.index(max(scores))
 
-    return candidates_text[index]
+    # return candidates_text[index]
 
 def main():
     training_sentences_y = []
@@ -105,12 +129,14 @@ def main():
     predicted_y = []
     for i, sentence in enumerate(training_sentences_x):
         # annotate sentence
-        annotatiton = nlp.annotate(sentence, properties={'annotators': 'dcoref', 'outputFormat': 'json',
+        annotatiton = nlp.annotate(sentence, properties={'timeout': '900000', 'annotators': 'dcoref', 'outputFormat': 'json',
                                                      'ner.useSUTime': 'false'})
-        predicted_y.append(resolve(annotatiton, referential_list[i]))
-
-    true_prediction, total = accuracyCalculation(training_sentences_y, predicted_y)
-    print("ACCURACY: ", true_prediction*100/total, " - TOTAL: ", total, " - TRUE PREDICTED: ", true_prediction)
+        try:
+            predicted_y.append(resolve(annotatiton, referential_list[i]))
+        except NameError:
+           predicted_y.append("none")
+        true_prediction, total = accuracyCalculation(training_sentences_y, predicted_y)
+        print("ACCURACY: ", true_prediction*100/total, " - TOTAL: ", total, " - TRUE PREDICTED: ", true_prediction)
 
 if __name__ == '__main__':
     main()
