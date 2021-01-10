@@ -3,8 +3,7 @@
 # Not.
 # Sadece baz olması için, taslak. 1ref_disambiguation_answers_file.csv ile çalışıyor çünkü iki referanslıları göz önünde bulundurmuyor şu an.
 # sanırım bir takım string okuma, veri türü vs işlemlerle ilgili problemler var. debug edilmesi ve detaylı bakılması gerekiyor.
-#true predicted 16'ya geldikten sonra bekletiyor bir süre oradaki cümle çok uzun diye
-
+# bir cümle çok uzun orada bayagı bekletiyor
 from pycorenlp import StanfordCoreNLP
 from csv import reader
 import re
@@ -39,9 +38,9 @@ def resolve(annotatiton, reference):
             if candidate['type'] == referenceFeatures['type']:
                 candidateScores[candidate['text']] += 1
             if candidate['number'] == referenceFeatures['number']:
-                candidateScores[candidate['text']] += 2
+                candidateScores[candidate['text']] += 1
             if candidate['gender'] == referenceFeatures['gender']:
-                candidateScores[candidate['text']] += 2
+                candidateScores[candidate['text']] += 1
             if candidate['animacy'] == referenceFeatures['animacy']:
                 candidateScores[candidate['text']] += 1
         return max(candidateScores, key=candidateScores.get)
@@ -130,7 +129,7 @@ def main():
     predicted_y = []
     for i, sentence in enumerate(training_sentences_x):
         # annotate sentence
-        annotatiton = nlp.annotate(sentence, properties={'timeout': '900000', 'annotators': 'dcoref', 'outputFormat': 'json',
+        annotatiton = nlp.annotate(sentence, properties={'timeout': '900000', 'annotators': 'coref', 'outputFormat': 'json',
                                                      'ner.useSUTime': 'false'})
         try:
             predicted_y.append(resolve(annotatiton, referential_list[i]))
