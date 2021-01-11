@@ -127,8 +127,8 @@ def main():
         except NameError:
             predicted_y.append("none")
 
-        true_prediction, total = accuracyCalculation(training_sentences_y, predicted_y)
-        print("ACCURACY: ", true_prediction * 100 / total, " - TOTAL: ", total, " - TRUE PREDICTED: ", true_prediction)
+    true_prediction, total = accuracyCalculation(training_sentences_y, predicted_y)
+    print("ACCURACY: ", true_prediction * 100 / total, " - TOTAL: ", total, " - TRUE PREDICTED: ", true_prediction)
 
 
 if __name__ == '__main__':
