@@ -24,6 +24,8 @@ import re
 from sklearn import linear_model
 from sklearn import *
 from sklearn import metrics
+from sklearn.naive_bayes import GaussianNB
+import logitboost
 
 
 def print_model_performace_for_test_doc(y_actual, y_pred):
@@ -35,25 +37,23 @@ def print_model_performace_for_test_doc(y_actual, y_pred):
     for i in range(len(y_actual)):
         if y_actual[i] == y_pred[i]:
             true_prediction += 1
-    print("------------------------------------------------------------------")
     print("Confusion_matrix:\n", metrics.confusion_matrix(y_actual, y_pred))
     print('Accuracy: ', accuracy, "\t F1-Score: ", f1score, "\t Precision: ", precision, "\t Recall: ", recall)
     print("TOTAL: ", len(y_actual), " - TRUE PREDICTED: ", true_prediction)
+    print("-"*100)
 
 
 def preprocessing(sentence):
     # 1. Word tokenization
     tokenized_words = word_tokenize(sentence)
 
-    # 2. Stopwords elimination is removed (to get and or etc.)
-
-    # 3. Lemmatization
+    # 2. Lemmatization
     lemmatized_words = []
     lemmatizer = WordNetLemmatizer()
     for word in tokenized_words:
         lemmatized_words.append(lemmatizer.lemmatize(word))
 
-    # 4. POS tagging
+    # 3. POS tagging
     tagged_words = nltk.pos_tag(lemmatized_words)
 
     print(tagged_words)
@@ -125,7 +125,7 @@ def featureExtraction(tags):
 
         # RULE 6: The number of all nouns that can be referent
         if tag[1].startswith("NN"):
-        #if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
+            # if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
             noun_counter += 1
 
         # Control flag for RULE 11: True if there is WRB (when, where etc.)
@@ -165,30 +165,36 @@ def featureExtraction(tags):
 def main():
     training_sentences_x = []
     # open file in read mode
-    with open('Data/training_set.csv', 'r', encoding='utf8') as read_obj:
+    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
         for row in csv_reader:
-            sentence = ', '.join(row[1:]) # To read the sentences separated by commas to the end
+            sentence = ', '.join(row[1:])  # To read the sentences separated by commas to the end
 
             # Delete statements indicating referentials from sentences
-            try: sentence = sentence.replace('<referential>', "")
-            except: pass
-            try: sentence = sentence.replace('<referential id="a">', "")
-            except: pass
-            try: sentence = sentence.replace('<referential id="b">', "")
-            except: pass
+            try:
+                sentence = sentence.replace('<referential>', "")
+            except:
+                pass
+            try:
+                sentence = sentence.replace('<referential id="a">', "")
+            except:
+                pass
+            try:
+                sentence = sentence.replace('<referential id="b">', "")
+            except:
+                pass
             sentence = sentence.replace("</referential>", "")
 
             training_sentences_x.append(sentence)
-            
+
     del training_sentences_x[0]  # delete header
 
     training_sentences_y = []
     # open file in read mode
     i = 0
-    with open('Data/detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
+    with open('detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
@@ -210,12 +216,25 @@ def main():
         feature_vectors.append(feature_vector)
         print(feature_vector)
 
+    print("-" * 100)
+    print("LOGISTIC REGRESSION")
     lreg = linear_model.LogisticRegression()
     lreg.fit(feature_vectors, training_sentences_y)
 
     predicted_sentences_y = lreg.predict(feature_vectors)
     print_model_performace_for_test_doc(training_sentences_y, predicted_sentences_y)
 
+    print("NAIVE BAYES")
+    gnb = GaussianNB()
+    gnb.fit(feature_vectors, training_sentences_y)
+    predicted_sentences_y = gnb.predict(feature_vectors)
+    print_model_performace_for_test_doc(training_sentences_y, predicted_sentences_y)
+
+    print("LOGIT BOOST")
+    lg = logitboost.LogitBoost()
+    lg.fit(feature_vectors, training_sentences_y)
+    predicted_sentences_y = lg.predict(feature_vectors)
+    print_model_performace_for_test_doc(training_sentences_y, predicted_sentences_y)
 
 if __name__ == '__main__':
     main()
