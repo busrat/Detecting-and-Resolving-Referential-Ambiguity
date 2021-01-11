@@ -1,9 +1,5 @@
 # java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -timeout 900000
 
-# Not.
-# Sadece baz olması için, taslak. 1ref_disambiguation_answers_file.csv ile çalışıyor çünkü iki referanslıları göz önünde bulundurmuyor şu an.
-# sanırım bir takım string okuma, veri türü vs işlemlerle ilgili problemler var. debug edilmesi ve detaylı bakılması gerekiyor.
-# bir cümle çok uzun orada bayagı bekletiyor
 from pycorenlp import StanfordCoreNLP
 from csv import reader
 import re
