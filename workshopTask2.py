@@ -16,9 +16,9 @@ def accuracyCalculation(training_sentences_y, predicted_y):
     true_prediction = 0
     for i in range(len(predicted_y)):
         found = predicted_y[i].lower()
-        label = training_sentences_y[i].lower()
+        label = training_sentences_y[i].strip('"').strip(' "').lower()
 
-        if label == found or label.replace(" ", "") == found.replace(" ", "") or label in found or found in label:
+        if label == found or label in found or found in label:
             print("TRUE ->", label, "<--->", found, "<-")
             true_prediction += 1
         else:
@@ -118,7 +118,6 @@ def main():
 
     predicted_y = []
     for i, sentence in enumerate(training_sentences_x):
-        print(sentence)
         # annotate sentence
         annotatiton = nlp.annotate(sentence,
                                    properties={'timeout': '900000', 'annotators': 'dcoref', 'outputFormat': 'json',
@@ -128,8 +127,8 @@ def main():
         except NameError:
             predicted_y.append("none")
 
-    true_prediction, total = accuracyCalculation(training_sentences_y, predicted_y)
-    print("ACCURACY: ", true_prediction * 100 / total, " - TOTAL: ", total, " - TRUE PREDICTED: ", true_prediction)
+        true_prediction, total = accuracyCalculation(training_sentences_y, predicted_y)
+        print("ACCURACY: ", true_prediction * 100 / total, " - TOTAL: ", total, " - TRUE PREDICTED: ", true_prediction)
 
 
 if __name__ == '__main__':
