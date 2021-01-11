@@ -165,7 +165,7 @@ def featureExtraction(tags):
 def main():
     training_sentences_x = []
     # open file in read mode
-    with open('training_set.csv', 'r', encoding='utf8') as read_obj:
+    with open('Data/training_set.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
@@ -194,7 +194,7 @@ def main():
     training_sentences_y = []
     # open file in read mode
     i = 0
-    with open('detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
+    with open('Data/detection_answers_file.csv', 'r', encoding='utf8') as read_obj:
         # pass the file object to reader() to get the reader object
         csv_reader = reader(read_obj)
         # Iterate over each row in the csv using reader object
