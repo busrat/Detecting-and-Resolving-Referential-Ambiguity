@@ -74,72 +74,88 @@ def featureExtraction(tags):
     in_counter = 0
     wrb_flag = False
     for tag in tags:
-
-        if feature_vector[11] == 0:
-            if tag[1] == "PRP":
+        # RULE 0: 1 if NN is before NNP in the sentence
+        if feature_vector[0] == 0:
+            if tag[1] == "PRP":  # header_property he, she, it, they
                 rule1_prp_flag = True
             if rule1_prp_flag == True and tag[1].startswith("NN"):
-                feature_vector[11] = 1
+                feature_vector[0] = 1
 
+        # RULE 1: 1 if there is CC(and, because, or etc.) in the sentence
         if tag[1] == "CC":
             conj_counter += 1
 
+        # RULE 2: 1 if there are more than one PRP
+        # RULE 7: The number of PRP(pronoun) in the sentence
         if tag[1] == "PRP":
             prp_counter += 1
-            if prp_counter > 1 and feature_vector[1] == 0:
-                feature_vector[1] = 1
+            if prp_counter > 1 and feature_vector[2] == 0:
+                feature_vector[2] = 1
 
-        if feature_vector[2] == 0:
+        # RULE 3: 1 if there is NN(noun, singular or mass) or NNP (proper noun, singular) in the sentence
+        if feature_vector[3] == 0:
             if tag[1] == "NN" or tag[1] == "NNP":
                 nn_counter1 += 1
             if nn_counter1 >= 2:
                 if tag[0].lower() in ['he', 'she', 'it']:
-                    feature_vector[2] = 1
+                    feature_vector[3] = 1
 
-        if feature_vector[2] == 0:
+        # RULE 13: 1 if there is NNS(noun, plural or mass) or NNPS (proper noun, plural) in the sentence
+        if feature_vector[3] == 0:
             if tag[1] == "NNS" or tag[1] == "NNPS":
                 nn_counter2 += 1
             if nn_counter2 >= 2:
                 if tag[0].lower() in ['they']:
                     feature_vector[13] = 1
 
+        # RULE 4: 1 if the number of VB (verb) is greater than 4
+        # RULE 8: The number of VB (verb) in the sentence
         if tag[1].startswith("VB"):
             verb_counter += 1
             if verb_counter > 4:
-                if feature_vector[13] == 0:
-                    feature_vector[13] = 1
+                if feature_vector[4] == 0:
+                    feature_vector[4] = 1
 
+        # RULE 5: 1 if the number of punctuation marks that separate sentences is greater than 2 and
+        # RULE 9: The number of punctuation marks that separate sentences
         if tag[1] in [',', '.', ';', '!', '?', ':', '``', "''"]:
             punctuation_counter += 1
-            if punctuation_counter > 2:
-                feature_vector[13] = 1
+            if punctuation_counter > 2 and feature_vector[9] == 0:
+                feature_vector[5] = 1
 
+        # RULE 6: The number of all nouns that can be referent
         if tag[1].startswith("NN"):
+            # if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
             noun_counter += 1
 
+        # Control flag for RULE 11: True if there is which, who, what, whose, where, when
         if tag[1] == "WRB" or tag[1] == "WDT" or tag[1] == "WP" or tag[1] == "WP$":
             wrb_flag = True
-            feature_vector[12] = 1
 
-        if feature_vector[14] == 0:
+        # RULE 11: 1 if there are more than one capital letter
+        if feature_vector[11] == 0:
             uppercaseLetters += len(re.findall(r'[A-Z]', tag[0]))
             if uppercaseLetters > 1:
-                feature_vector[14] = 1
+                feature_vector[11] = 1
 
+        # RULE 12: 1 if the number of IN (with, in, under, of etc) greater than 2greater than 2
         if tag[1] == "IN":
             in_counter += 1
-            if in_counter > 2 and feature_vector[8] == 0:
-                feature_vector[8] = 1
+            if in_counter > 2 and feature_vector[12] == 0:
+                feature_vector[12] = 1
 
+        # RULE 14: 1 if there are words that cause ambiguity such as some jobs, this school etc.
         if tag[0].lower() in ['more', 'some', 'any', 'other', 'most', 'another', 'this', 'that', 'many', 'certain'] and \
-                feature_vector[10] == 0:
-            feature_vector[10] = 1
+                feature_vector[14] == 0:
+            feature_vector[14] = 1
 
-    feature_vector[11] = conj_counter
-    feature_vector[12] = prp_counter
-    feature_vector[13] = noun_counter
-    feature_vector[14] = verb_counter
+    feature_vector[7] = prp_counter
+    feature_vector[6] = noun_counter
+    feature_vector[8] = verb_counter
+    feature_vector[9] = punctuation_counter
+    feature_vector[1] = conj_counter
 
+    # RULE 10: 1 if there is CC and PRP in the sentence
     if wrb_flag == True and prp_counter > 0:
         feature_vector[10] = 1
 
@@ -195,10 +211,8 @@ def main():
     feature_vectors = []
     for sentence in training_sentences_x:
         tags = preprocessing(sentence)
-        print(sentence)
         feature_vector = featureExtraction(tags)
         feature_vectors.append(feature_vector)
-        print(feature_vector)
 
     print("-" * 100)
     print("LOGISTIC REGRESSION")
