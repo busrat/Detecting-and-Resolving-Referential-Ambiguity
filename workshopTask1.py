@@ -128,8 +128,8 @@ def featureExtraction(tags):
             # if tag[1] == "NN" or tag[1] == "NNS" or tag[1] == "NNP":
             noun_counter += 1
 
-        # Control flag for RULE 11: True if there is WRB (when, where etc.)
-        if tag[1] == "WRB":
+        # Control flag for RULE 11: True if there is which, who, what, whose, where, when
+        if tag[1] == "WRB" or tag[1] == "WDT" or tag[1] == "WP" or tag[1] == "WP$":
             wrb_flag = True
 
         # RULE 11: 1 if there are more than one capital letter
